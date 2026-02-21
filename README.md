@@ -224,8 +224,24 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 ## Reproducibility
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/jmarbis1703/ab-test-checkout-redesign
 cd ab-test-checkout-redesign
+
+# Create a virtual environment (Recommended)
+python -m venv venv
+
+# Activate the environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows (Command Prompt):
+venv\Scripts\activate.bat
+# On Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+
+# Upgrade pip (crucial for Windows to avoid wheel build errors with SciPy/NumPy)
+python -m pip install --upgrade pip
+
+# Install dependencies
 pip install -r requirements.txt
 
 # Generate data
