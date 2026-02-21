@@ -111,7 +111,7 @@ What would have happened if we had stopped the test after Week 1 and shipped?
 | p-value                   | 0.1414                 | 0.1853                 |
 | 95% CI                    | [−0.11, +0.78] pp      | [−0.08, +0.42] pp      |
 | Projected annual revenue  | $318,023               | $0 (n.s.)              |
-| Ship decision             | ⚠️ Tempted to ship      | ❌ Do not ship          |
+| Ship decision             | Tempted to ship        | Do not ship            |
 | Business outcome          | $25K spent, zero ROI   | $25K saved             |
 
 The Week 1 data would have projected $318,023 in annual revenue — the true sustained value was $0. The 21-day discipline saved $25,000 in wasted implementation costs.
@@ -136,7 +136,7 @@ Treatment lift varied substantially across device × traffic source combinations
 ### Secondary Metrics
 
 - **Revenue per session:** No statistically significant difference (bootstrap 95% CI: [−$0.08, $0.31]).
-- **AOV (Guardrail):** No significant change — the guardrail was not triggered, but this is moot given the primary metric failed.
+- **AOV (Guardrail):** No significant change, the guardrail was not triggered, but this is moot given the primary metric failed.
 
 ### Robustness
 
@@ -165,7 +165,7 @@ Because the test failed to reach statistical significance and the confidence int
 
 ## Recommendation
 
-### Do NOT ship the new checkout
+### Do not ship the new checkout
 
 The treatment failed to produce a statistically significant improvement in the primary KPI. More importantly, temporal analysis reveals that the small observed lift was entirely driven by a novelty effect that decayed to zero by Week 3. There is no evidence of sustained business value.
 
@@ -173,8 +173,8 @@ The treatment failed to produce a statistically significant improvement in the p
 
 This outcome demonstrates the value of disciplined experimentation. By adhering to the pre-specified 21-day test duration and resisting the temptation to peek at early results, the team prevented a $25,000 investment in a feature with no long-term ROI. The savings are real and immediate.
 
-**What we learned:**
-1. The single-page checkout concept is not inherently flawed — users responded positively at first. The problem is that the improvement doesn't persist.
+**Lessons Learned:**
+1. The single-page checkout concept is not inherently flawed, users responded positively at first. The problem is that the improvement doesn't persist.
 2. Future checkout optimizations should focus on changes that solve genuine pain points rather than surface-level layout changes that generate short-term novelty.
 3. Any future test showing early positive results should be held to the full test duration before making ship decisions.
 
@@ -207,18 +207,18 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 ---
 
 ## Repository Structure
-
-```
+```text
 ├── README.md                          # This file
 ├── requirements.txt                   # Python dependencies
 ├── data/
 │   └── ab_test_data.csv               # Generated experiment data (~76K rows)
 ├── notebooks/
+│   └── ab_test_checkout_novelty_effect.ipynb # Full analysis & novelty effect deep-dive
+├── scripts/
 │   ├── 01_generate_data.py            # Synthetic data generation
 │   ├── 02_eda.py                      # Exploratory data analysis
 │   ├── 03_statistical_analysis.py     # Hypothesis testing & robustness
-│   ├── 04_business_recommendations.py # Impact sizing & recommendation
-│   └── ab_test_checkout_novelty_effect.ipynb # Full analysis & novelty effect deep-dive
+│   └── 04_business_recommendations.py # Impact sizing & recommendation
 ├── src/
 │   ├── data_utils.py                  # Data loading & validation
 │   └── stats_utils.py                 # Reusable statistical functions
@@ -228,17 +228,34 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 ## Reproducibility
 
 ```bash
+```bash
 git clone <repo-url>
 cd ab-test-checkout-redesign
+
+# Create a virtual environment (Recommended)
+python -m venv venv
+
+# Activate the environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows (Command Prompt):
+venv\Scripts\activate.bat
+# On Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+
+# Upgrade pip (crucial for Windows to avoid wheel build errors with SciPy/NumPy)
+python -m pip install --upgrade pip
+
+# Install dependencies
 pip install -r requirements.txt
 
 # Generate data
-python notebooks/01_generate_data.py
+python scripts/01_generate_data.py
 
 # Run analysis (in order)
-python notebooks/02_eda.py
-python notebooks/03_statistical_analysis.py
-python notebooks/04_business_recommendations.py
+python scripts/02_eda.py
+python scripts/03_statistical_analysis.py
+python scripts/04_business_recommendations.py
 ```
 
 All random seeds are fixed. Outputs are deterministic.
