@@ -20,7 +20,7 @@ A **two-sided hypothesis test** was applied to maintain statistical rigor.
 - **H₁ (Alternative):** $CVR_{treatment} \neq CVR_{control}$
 
 **Decision Framework:**
-1. **Significance:** We reject $H_0$ only if $p < 0.05$.
+1. **Significance:** $H_0$ is rejected only if $p < 0.05$.
 2. **Improvement:** If $H_0$ is rejected, the new design will only be implemented if the effect is significant *and* positive.
 3. **Guardrails:** The new checkout won't be implemented if AOV shows a statistically significant decline, even if CVR increases.
 
@@ -47,17 +47,17 @@ A **two-sided hypothesis test** was applied to maintain statistical rigor.
 | α | 0.05 (two-sided) | Industry standard |
 | Power | 0.80 | Standard: 21-day run yields well above the required sample per group |
 
-### Risks Addressed
+### Risk Mitigation
 
 - **Sample Ratio Mismatch (SRM):** Chi-squared test assessed the balance between control and treatment group sizes. Any observed imbalance was evaluated and factored into interpretation.
 
-- **Novelty effect:** This turned out to be the defining feature of this experiment. We compared conversion rates in Week 1 versus Week 3 and found that the early treatment lift was driven entirely by a novelty spike that faded to zero. Had we "peeked" and stopped the test early, we would have shipped a feature with no sustained value. The full 21-day design caught this.
+- **Novelty effect:** This turned out to be the defining feature of this experiment. Conversion rates were compared between Week 1 and Week 3. This analysis revealed that early treatment lift was driven by a novelty spike that eventually dissipated. The 21-day duration was essential in identifying this trend.
 
-- **Multiple comparisons:** Three hypothesis tests were run (CVR, revenue per session, AOV), so we applied Bonferroni correction (adjusted α = 0.0167).
+- **Multiple comparisons:** To account for three simultaneous tests (CVR, Revenue per Session, AOV), a Bonferroni correction was applied (adjusted $\alpha = 0.0167$).
 
-- **Peeking:** Results were analyzed only after the full 21-day period, as pre-specified. This discipline was critical — early data would have led to a wrong decision.
+- **Peeking:** Results were analyzed exclusively after the pre-specified 21-day period to maintain statistical integrity.
 
-- **Intra-user correlation:** A design effect of ~1.01 was computed (1.4 sessions/user, ICC ≈ 0.03), confirming that session-level standard errors are not materially inflated by within-user clustering. A user-level analysis validated this.
+- **Intra-user correlation:** A design effect of ~1.01 was calculated, confirming that session-level results were not significantly inflated by within-user clustering.
 
 ### Dataset
 
@@ -69,7 +69,7 @@ Synthetic data generated with realistic patterns: day-of-week seasonality, devic
 
 ## Results
 
-### Primary Metric — Conversion Rate
+### Primary Metric - Conversion Rate
 
 | | Control | Treatment |
 |---|---|---|
@@ -81,7 +81,7 @@ Synthetic data generated with realistic patterns: day-of-week seasonality, devic
 - **p-value:** 0.1853
 - **95% CI:** [−0.08 pp, +0.42 pp] — crosses zero
 
-**We failed to reject the null hypothesis.** The observed +0.17 pp lift is not statistically distinguishable from zero at the 0.05 significance level.
+**Failed to reject the null hypothesis.** The observed +0.17 pp lift is not statistically distinguishable from zero at the 0.05 significance level.
 
 ![Lift CI](assets/lift_ci_plot.png)
 
@@ -89,21 +89,21 @@ Synthetic data generated with realistic patterns: day-of-week seasonality, devic
 
 The cumulative CVR chart shows the treatment and control lines converging over 21 days as the novelty-inflated early gap shrinks to near zero.
 
-### The Novelty Effect — The Real Story
+### The Novelty Effect
 
 The overall result masks a critical pattern that only emerges when the data is examined over time:
 
 | Period | Treatment Lift | Interpretation |
 |---|---|---|
-| Week 1 | +0.33 pp | Strong positive signal — novelty excitement |
+| Week 1 | +0.33 pp | Strong positive signal - novelty excitement |
 | Week 2 | +0.20 pp | Effect fading as users habituate |
-| Week 3 | −0.02 pp | Lift has completely evaporated |
+| Week 3 | −0.02 pp | Lift evaporated entirely |
 
 This is a textbook **novelty effect**. Users initially engaged more with the new checkout because it was different, not because it was better. Once the novelty wore off, behavior reverted to baseline.
 
 #### The Peeking Counterfactual
 
-What would have happened if we had stopped the test after Week 1 and shipped?
+Terminating the test after Week 1 would have led to an incorrect "Ship" decision based on inflated projections:
 
 | Metric                    | Peeked at Week 1       | Full 21-Day Result     |
 |:--------------------------|:-----------------------|:-----------------------|
@@ -111,10 +111,10 @@ What would have happened if we had stopped the test after Week 1 and shipped?
 | p-value                   | 0.1414                 | 0.1853                 |
 | 95% CI                    | [−0.11, +0.78] pp      | [−0.08, +0.42] pp      |
 | Projected annual revenue  | $318,023               | $0 (n.s.)              |
-| Ship decision             | ⚠️ Tempted to ship      | ❌ Do not ship          |
+| Ship decision             | Tempted to ship        | Do not ship            |
 | Business outcome          | $25K spent, zero ROI   | $25K saved             |
 
-The Week 1 data would have projected $318,023 in annual revenue — the true sustained value was $0. The 21-day discipline saved $25,000 in wasted implementation costs.
+The Week 1 data would have projected $318,023 in annual revenue, the true sustained value was $0. The 21-day discipline saved $25,000 in wasted implementation costs.
 
 ![Peeking Counterfactual](assets/peeking_counterfactual.png)
 
@@ -134,15 +134,13 @@ Treatment lift varied substantially across device × traffic source combinations
 ![Device × Source Lift](assets/lift_device_source_heatmap.png)
 
 ### Secondary Metrics
-
 - **Revenue per session:** No statistically significant difference (bootstrap 95% CI: [−$0.08, $0.31]).
-- **AOV (Guardrail):** No significant change — the guardrail was not triggered, but this is moot given the primary metric failed.
+- **AOV (Guardrail):** No significant change - the guardrail was not triggered, but this is moot given the primary metric failed.
 
 ### Robustness
-
 - Permutation test (10,000 iterations, p = 0.1883) confirms the non-significant result.
 - User-level z-test is consistent with session-level findings.
-- Temporal analysis reveals clear novelty decay — the treatment effect is not stable over time.
+- Temporal analysis reveals clear novelty decay, the treatment effect is not stable over time.
 - Tablet segment showed a negative signal, though with small sample size.
 
 ---
@@ -165,24 +163,22 @@ Because the test failed to reach statistical significance and the confidence int
 
 ## Recommendation
 
-### Do NOT ship the new checkout
+### Do not ship the new checkout
 
 The treatment failed to produce a statistically significant improvement in the primary KPI. More importantly, temporal analysis reveals that the small observed lift was entirely driven by a novelty effect that decayed to zero by Week 3. There is no evidence of sustained business value.
 
-**Why this is a win for the data team:**
-
 This outcome demonstrates the value of disciplined experimentation. By adhering to the pre-specified 21-day test duration and resisting the temptation to peek at early results, the team prevented a $25,000 investment in a feature with no long-term ROI. The savings are real and immediate.
 
-**What we learned:**
-1. The single-page checkout concept is not inherently flawed — users responded positively at first. The problem is that the improvement doesn't persist.
-2. Future checkout optimizations should focus on changes that solve genuine pain points rather than surface-level layout changes that generate short-term novelty.
-3. Any future test showing early positive results should be held to the full test duration before making ship decisions.
+**Key Findings:**
+1. The single-page checkout provides no sustained business value over the current multi-step flow.
+2. Future optimizations should target genuine friction points (e.g., address autofill, guest checkout) rather than purely aesthetic layout changes.
+3. The 21-day testing discipline is essential for avoiding false positives driven by temporary user behavior shifts.
 
 **Next Steps:**
 1. Archive the experiment code and data for institutional knowledge.
 2. Conduct a qualitative UX review (user interviews, session recordings) to understand *why* the novelty effect occurred and what friction points actually exist in the current flow.
-3. Explore alternative checkout optimizations — e.g., guest checkout improvements, payment method expansion, address autofill, progress indicators — that target specific, measurable pain points.
-4. If a redesign is revisited, design a longer test (28–42 days) with explicit novelty decay monitoring built into the analysis plan.
+3. Explore alternative checkout optimizations (guest checkout improvements, payment method expansion, address autofill, progress indicators) that target specific, measurable pain points.
+4. Establish a standardized 28-day testing window for future major UI changes to fully monitor novelty decay.
 
 ---
 
@@ -200,7 +196,7 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 
 - **Returning-user identification:** In production, I would implement cookie-clearing detection and cross-device reconciliation to sharpen returning-user identification and novelty decay measurement.
 
-- **Sequential monitoring:** A Bayesian approach with sequential monitoring could replace fixed-horizon testing, allowing earlier stopping when the posterior probability of a meaningful effect drops below threshold — while still protecting against novelty effects through time-stratified priors.
+- **Sequential monitoring:** A Bayesian approach with sequential monitoring could replace fixed-horizon testing, allowing earlier stopping when the posterior probability of a meaningful effect drops below threshold, while still protecting against novelty effects through time-stratified priors.
 
 - **MDE at the margin:** The MDE (0.4 pp) was set equal to the true simulated treatment effect, meaning the test was powered at the margin. In practice, a lower MDE would provide a safety buffer.
 
