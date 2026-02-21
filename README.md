@@ -2,7 +2,7 @@
 
 End-to-end A/B testing project, from experiment design through statistical analysis to a ship/no-ship business recommendation.
 
-**Result: Do NOT ship.** Rigorous methodology saved the business $25,000 and prevented unnecessary technical debt.
+**Result: Do not ship.** Rigorous methodology saved the business $25,000 and prevented unnecessary technical debt.
 
 ![Cumulative CVR](assets/cumulative_cvr.png)
 
@@ -53,17 +53,17 @@ A **two-sided hypothesis test** was applied to maintain statistical rigor.
 
 - **Novelty effect:** This turned out to be the defining feature of this experiment. We compared conversion rates in Week 1 versus Week 3 and found that the early treatment lift was driven entirely by a novelty spike that faded to zero. Had we "peeked" and stopped the test early, we would have shipped a feature with no sustained value. The full 21-day design caught this.
 
-- **Multiple comparisons:** Three hypothesis tests were run (CVR, revenue per session, AOV), so we applied Bonferroni correction to reduce false positive risk.
+- **Multiple comparisons:** Three hypothesis tests were run (CVR, revenue per session, AOV), so we applied Bonferroni correction (adjusted α = 0.0167).
 
 - **Peeking:** Results were analyzed only after the full 21-day period, as pre-specified. This discipline was critical — early data would have led to a wrong decision.
 
-- **Intra-user correlation:** Some users visited multiple times. A design effect was calculated to account for clustering, and a user-level analysis was run to validate session-level findings.
+- **Intra-user correlation:** A design effect of ~1.01 was computed (1.4 sessions/user, ICC ≈ 0.03), confirming that session-level standard errors are not materially inflated by within-user clustering. A user-level analysis validated this.
 
 ### Dataset
 
 Synthetic data generated with realistic patterns: day-of-week seasonality, device mix, traffic source variation, and a fading novelty bump built into the treatment effect. See `notebooks/01_generate_data.py` for the full generative model and parameters.
 
-**~76K sessions** over 21 days (~38K control / ~38K treatment).
+**78,561 sessions** over 21 days (39,342 control / 39,219 treatment).
 
 ---
 
@@ -73,17 +73,21 @@ Synthetic data generated with realistic patterns: day-of-week seasonality, devic
 
 | | Control | Treatment |
 |---|---|---|
-| Sessions | ~38,400 | ~37,800 |
-| CVR | ~3.19% | ~3.36% |
+| Sessions | 39,342 | 39,219 |
+| CVR | 3.3018% | 3.4728% |
 
 - **Absolute lift:** +0.17 pp
-- **Relative lift:** +5.3%
+- **Relative lift:** +5.2%
 - **p-value:** 0.1853
-- **95% CI:** crosses zero (computed dynamically in `03_statistical_analysis.py`)
+- **95% CI:** [−0.08 pp, +0.42 pp] — crosses zero
 
 **We failed to reject the null hypothesis.** The observed +0.17 pp lift is not statistically distinguishable from zero at the 0.05 significance level.
 
 ![Lift CI](assets/lift_ci_plot.png)
+
+![Cumulative CVR](assets/cumulative_cvr.png)
+
+The cumulative CVR chart shows the treatment and control lines converging over 21 days as the novelty-inflated early gap shrinks to near zero.
 
 ### The Novelty Effect — The Real Story
 
@@ -92,10 +96,27 @@ The overall result masks a critical pattern that only emerges when the data is e
 | Period | Treatment Lift | Interpretation |
 |---|---|---|
 | Week 1 | +0.33 pp | Strong positive signal — novelty excitement |
-| Week 2 | ~+0.10 pp | Effect fading as users habituate |
+| Week 2 | +0.20 pp | Effect fading as users habituate |
 | Week 3 | −0.02 pp | Lift has completely evaporated |
 
 This is a textbook **novelty effect**. Users initially engaged more with the new checkout because it was different, not because it was better. Once the novelty wore off, behavior reverted to baseline.
+
+#### The Peeking Counterfactual
+
+What would have happened if we had stopped the test after Week 1 and shipped?
+
+| Metric                    | Peeked at Week 1       | Full 21-Day Result     |
+|:--------------------------|:-----------------------|:-----------------------|
+| Observed lift             | +0.33 pp               | +0.17 pp               |
+| p-value                   | 0.1414                 | 0.1853                 |
+| 95% CI                    | [−0.11, +0.78] pp      | [−0.08, +0.42] pp      |
+| Projected annual revenue  | $318,023               | $0 (n.s.)              |
+| Ship decision             | ⚠️ Tempted to ship      | ❌ Do not ship          |
+| Business outcome          | $25K spent, zero ROI   | $25K saved             |
+
+The Week 1 data would have projected $318,023 in annual revenue — the true sustained value was $0. The 21-day discipline saved $25,000 in wasted implementation costs.
+
+![Peeking Counterfactual](assets/peeking_counterfactual.png)
 
 **If the team had peeked at results after Week 1 and shipped the feature, they would have:**
 - Committed $25,000 in implementation costs for zero sustained ROI
@@ -106,14 +127,20 @@ The 21-day experiment design caught what a 7-day test would have missed entirely
 
 ![Rolling Lift](assets/rolling_lift.png)
 
+### Segmentation
+
+Treatment lift varied substantially across device × traffic source combinations. Several combinations showed negative lift, though small sample sizes within individual cells limit the reliability of segment-level conclusions.
+
+![Device × Source Lift](assets/lift_device_source_heatmap.png)
+
 ### Secondary Metrics
 
-- **Revenue per session:** No statistically significant difference between groups.
+- **Revenue per session:** No statistically significant difference (bootstrap 95% CI: [−$0.08, $0.31]).
 - **AOV (Guardrail):** No significant change — the guardrail was not triggered, but this is moot given the primary metric failed.
 
 ### Robustness
 
-- Permutation test confirms the non-significant result.
+- Permutation test (10,000 iterations, p = 0.1883) confirms the non-significant result.
 - User-level z-test is consistent with session-level findings.
 - Temporal analysis reveals clear novelty decay — the treatment effect is not stable over time.
 - Tablet segment showed a negative signal, though with small sample size.
@@ -171,6 +198,12 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 
 - **Simplified novelty model:** The novelty effect follows a clean exponential decay. Real-world novelty effects may be more complex, with partial recovery, segment-specific patterns, or interaction with external events.
 
+- **Returning-user identification:** In production, I would implement cookie-clearing detection and cross-device reconciliation to sharpen returning-user identification and novelty decay measurement.
+
+- **Sequential monitoring:** A Bayesian approach with sequential monitoring could replace fixed-horizon testing, allowing earlier stopping when the posterior probability of a meaningful effect drops below threshold — while still protecting against novelty effects through time-stratified priors.
+
+- **MDE at the margin:** The MDE (0.4 pp) was set equal to the true simulated treatment effect, meaning the test was powered at the margin. In practice, a lower MDE would provide a safety buffer.
+
 ---
 
 ## Repository Structure
@@ -184,7 +217,8 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 │   ├── 01_generate_data.py            # Synthetic data generation
 │   ├── 02_eda.py                      # Exploratory data analysis
 │   ├── 03_statistical_analysis.py     # Hypothesis testing & robustness
-│   └── 04_business_recommendations.py # Impact sizing & recommendation
+│   ├── 04_business_recommendations.py # Impact sizing & recommendation
+│   └── ab_test_checkout_novelty_effect.ipynb # Full analysis & novelty effect deep-dive
 ├── src/
 │   ├── data_utils.py                  # Data loading & validation
 │   └── stats_utils.py                 # Reusable statistical functions

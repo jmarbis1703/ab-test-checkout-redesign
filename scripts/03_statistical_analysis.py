@@ -151,7 +151,7 @@ print(f"Permutation p-value: {perm_p:.4f}")
 
 
 # User Level Robustness Check
-print("\n User-level robustness check:")
+print("\nUser-level robustness check:")
 user_agg = df.groupby(['user_id', 'group']).agg(any_converted=('converted', 'max')).reset_index()
 
 user_ctrl = user_agg[user_agg.group == 'control']
@@ -168,7 +168,7 @@ print(f"{'Consistent' if p_user < 0.05 else 'Weaker'} with session-level result 
 
 
 # Rolling Lift
-print("\n Rolling lift analysis:")
+print("\nRolling lift analysis:")
 daily_cvr = df.groupby(['date', 'group'])['converted'].mean().unstack().sort_index()
 daily_cvr['lift'] = daily_cvr['treatment'] - daily_cvr['control']
 daily_cvr['rolling_lift'] = daily_cvr['lift'].rolling(3, min_periods=1).mean()
@@ -180,11 +180,15 @@ print(f" 3-day rolling lift — min: {daily_cvr['rolling_lift'].min()*100:.2f} p
 
 
 # Visualisations
-print("\n Visualisations")
-
+print("\nVisualisations")
 
 plt.figure(figsize=(10, 5))
 plt.plot(daily_cvr.index, daily_cvr['rolling_lift'] * 100, color='#E07B54', marker='o', lw=2)
+plt.fill_between(daily_cvr.index, 0, daily_cvr['rolling_lift'] * 100,
+                 where=daily_cvr['rolling_lift'] > 0, alpha=0.15, color='#4CAF50')
+plt.fill_between(daily_cvr.index, 0, daily_cvr['rolling_lift'] * 100,
+                 where=daily_cvr['rolling_lift'] <= 0, alpha=0.15, color='#F44336')
+plt.axhline(0, color='black', lw=0.8, ls='--')
 plt.ylabel('3-Day Rolling Lift (pp)')
 plt.xlabel('Date')
 plt.title('Rolling Treatment Lift Over Time')
@@ -221,4 +225,16 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(os.path.join(FIGDIR, 'cumulative_cvr.png'), dpi=150, bbox_inches='tight')
 plt.close()
-print("  Saved cumulative_cvr.png")
+print("Saved cumulative_cvr.png")
+
+
+# Analysis Summary
+print("\n" + "═" * 65)
+print(" Analysis Summary")
+print(f" Primary (CVR): p = {p_value:.4f} - {'Significant' if p_value < 0.05 else 'Not significant'}")
+print(f" Secondary (Rev/Sess): p = {mw_p:.4f}  - {'Significant' if mw_p < 0.05 else 'Not significant'}")
+print(f" Guardrail (AOV): p = {t_p:.4f}  - {'Significant' if t_p < 0.05 else 'Not significant'} (guardrail holds)")
+print(f" Bonferroni α: {bonferroni_alpha:.4f}")
+print(f" Permutation p: {perm_p:.4f} - {'Confirms' if (perm_p >= 0.05) == (p_value >= 0.05) else 'Conflicts with'} parametric result")
+print(f" User-level p:{p_user:.4f} - {'Consistent' if (p_user >= 0.05) == (p_value >= 0.05) else 'Inconsistent'} with session-level")
+
