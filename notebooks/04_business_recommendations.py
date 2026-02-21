@@ -422,5 +422,5 @@ plt.close()
 
 print("  Saved chart to assets/revenue_impact.png")
 print("\n" + "═" * 65)
-print(" Analysis complete. Recommendation: DO NOT SHIP.")
+print(" Analysis complete. Recommendation: Do Not Ship.")
 print("═" * 65)
