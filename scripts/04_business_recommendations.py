@@ -13,7 +13,7 @@ from src.stats_utils import compute_lift_ci, run_proportion_ztest
 DATA_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'ab_test_data.csv')
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), '..', 'assets')
 
-IMPLEMENTATION_COST = 25_000
+implementation_cost = 25_000
 ANNUAL_DECAY_RATE = 0.15
 SIGNIFICANCE_THRESHOLD = 0.05
 
@@ -166,7 +166,7 @@ print(f"{'Business outcome':<28} {'$25K spent, zero ROI':>20} {'$25K saved':>20}
 print(f"\n The Week 1 data showed a {diff_w1*100:+.2f} pp lift — nearly {diff_w1/diff:.1f}x the")
 print(f"full-test estimate. A team that peeked would have projected")
 print(f"${w1_projected_rev:,.0f} in annual revenue. The true sustained value was $0.")
-print(f"The 21-day discipline saved ${IMPLEMENTATION_COST:,} in wasted implementation costs.")
+print(f"The 21-day discipline saved ${implementation_cost:,} in wasted implementation costs.")
 
 # Peeking Counterfactual Visualization
 y_positions = [1.0, 0.4]
@@ -209,14 +209,14 @@ print(f"• Average Order Value: ${average_order_value:.2f}")
 print(f"• Current Conversion Rate: {baseline_cvr:.2%}")
 print(f"• Observed Lift: {observed_lift*100:+.2f} pp (p = {p_value:.4f})")
 print(f"• 95% CI: [{ci_lo*100:.2f} pp, {ci_hi*100:.2f} pp]")
-print(f"• Implementation Cost: ${IMPLEMENTATION_COST:,.0f}")
+print(f"• Implementation Cost: ${implementation_cost:,.0f}")
 
 if not is_significant:
     print(f"\n Because p = {p_value:.4f} > {SIGNIFICANCE_THRESHOLD}, the true lift is")
     print(f"indistinguishable from zero. All revenue projections are set to $0.")
     print(f" Projecting revenue from a non-significant result would be misleading.\n")
 
-LIFT_SCENARIOS = {
+lift_scenarios = {
     'Conservative (Lower Bound)': ci_lo,
     'Expected (Point Estimate)':  observed_lift,
     'Optimistic (Upper Bound)':   ci_hi
@@ -224,7 +224,7 @@ LIFT_SCENARIOS = {
 
 print(f" {'Scenario':<30} {'Observed':>14} {'Actionable':>14} {'Projected Rev':>14}")
 
-for label, lift_pp in LIFT_SCENARIOS.items():
+for label, lift_pp in lift_scenarios.items():
     if is_significant and not ci_crosses_zero:
         projected_rev = annual_sessions * lift_pp * average_order_value * (1 -ANNUAL_DECAY_RATE/ 2)
     else:
@@ -242,21 +242,21 @@ else:
 # Break-Even & Payback
 print("\n" + "═" * 65)
 print(" Break Even Analysis")
-print(f"Implementation cost: ${IMPLEMENTATION_COST:,.0f}\n")
+print(f"Implementation cost: ${implementation_cost:,.0f}\n")
 
 if not is_significant:
     print(f"The test did not reach statistical significance (p = {p_value:.4f}).")
     print(f"The true sustained lift is effectively zero.")
     print(f"Daily uplift: $0.00")
     print(f"Payback period: ∞ (never)")
-    print(f"\nThe ${IMPLEMENTATION_COST:,.0f} investment would not be recovered.")
+    print(f"\nThe ${implementation_cost:,.0f} investment would not be recovered.")
     print(f"Shipping this feature would be a pure cost with no expected return.")
 else:
     print(f"{'Scenario':<30} {'Daily Uplift':>16} {'Payback (days)':>16}")
-    for label, lift_pp in LIFT_SCENARIOS.items():
+    for label, lift_pp in lift_scenarios.items():
         daily_uplift = daily_sessions * lift_pp * average_order_value
         if daily_uplift > 0:
-            payback_days = IMPLEMENTATION_COST / daily_uplift
+            payback_days = implementation_cost / daily_uplift
             print(f"{label:<30} ${daily_uplift:>12,.2f} {payback_days:>15.0f}")
         else:
             print(f"{label:<30} ${daily_uplift:>12,.2f} {'N/A':>15}")
@@ -293,7 +293,7 @@ risks = [
     ("Novelty Effect", "SEVERE — Week 1 lift faded to ~zero by Week 3"),
     ("Temporal Stability", "UNSTABLE — lift decayed consistently over 21 days"),
     ("Average Order Value", "No negative impact detected (guardrail passed, but moot)"),
-    ("Implementation Cost", f"${IMPLEMENTATION_COST:,.0f} at risk with zero expected return"),
+    ("Implementation Cost", f"${implementation_cost:,.0f} at risk with zero expected return"),
 ]
 
 for area, note in risks:
@@ -347,79 +347,91 @@ print("""
 
     5. F¡fUTURE PROOF: Plan 4-6 week windows for future redesign tests.
        [Data Science | As Needed]
-""".format(p=p_value, cost=IMPLEMENTATION_COST))
+""".format(p=p_value, cost=implementation_cost))
 
 
 # Visualisation
 print("\n" + "═" * 65)
 print(" Generating charts...")
 
-fig, axes = plt.subplots(1, 2, figsize=(14, 5), gridspec_kw={'width_ratios': [1.2, 1]})
+# Final Visualization
+plt.figure(figsize=(15, 5.5))
 
-# Left panel: Revenue projection showing $0 actionable value
-ax1 = axes[0]
-
-scenario_labels = list(LIFT_SCENARIOS.keys())
-observed_revenues = [annual_sessions * lift * average_order_value for lift in LIFT_SCENARIOS.values()]
-actionable_revenues = [0.0] * len(scenario_labels)  # All zero since non-significant
-
+# Left
+plt.subplot(1, 2, 1)
+scenario_labels = list(lift_scenarios.keys())
+observed_revenues = [annual_sessions * l * average_order_value for l in lift_scenarios.values()]
 y_pos = range(len(scenario_labels))
-bar_height = 0.35
+bar_h = 0.32
+max_rev = max(abs(v) for v in observed_revenues)
 
-# observed
-bars_observed = ax1.barh(
-    [y - bar_height/2 for y in y_pos], observed_revenues, height=bar_height,
-    color=['#B0B0B0', '#B0B0B0', '#B0B0B0'], alpha=0.4, label='Naive projection (not actionable)')
+plt.barh([y - bar_h/2 for y in y_pos], observed_revenues, height=bar_h,
+         color="#CCCCCC", alpha=0.5, label="Naïve projection (not actionable)",
+         edgecolor="#AAAAAA", linewidth=0.5)
 
-# Actionable 
-bars_actionable = ax1.barh(
-    [y + bar_height/2 for y in y_pos], actionable_revenues, height=bar_height,
-    color=['#E07B54', '#E07B54', '#E07B54'], label='Actionable projection ($0, n.s.)')
+plt.barh([y + bar_h/2 for y in y_pos], [0.001]*3, height=bar_h,
+         color="#E07B54", label="Actionable projection ($0)",
+         edgecolor="#C0623E", linewidth=0.5)
 
-for i, (obs, act) in enumerate(zip(observed_revenues, actionable_revenues)):
+for i, obs in enumerate(observed_revenues):
     if obs != 0:
-        ax1.text(obs + max(abs(v) for v in observed_revenues) * 0.02, i - bar_height/2,
-                 f'${obs:,.0f}', va='center', fontsize=8, color='#888888', style='italic')
-    ax1.text(max(abs(v) for v in observed_revenues) * 0.02, i + bar_height/2,
-             '$0 (n.s.)', va='center', fontsize=9, color='#E07B54', fontweight='bold')
+        plt.text(obs + max_rev * 0.02, i - bar_h/2,
+                 f"${obs:,.0f}", va="center", fontsize=8,
+                 color="#999", style="italic")
+    plt.text(max_rev * 0.02, i + bar_h/2, "$0 (n.s.)",
+             va="center", fontsize=10, color="#E07B54", fontweight="bold")
 
-# Implementation cost line
-ax1.axvline(IMPLEMENTATION_COST, color='red', ls='--', lw=1.5, alpha=0.7)
-ax1.text(IMPLEMENTATION_COST + max(abs(v) for v in observed_revenues) * 0.01, len(scenario_labels) - 0.3,
-         f'Implementation\ncost: ${IMPLEMENTATION_COST:,.0f}\n(never recovered)',
-         fontsize=8, color='red', va='top')
+plt.axvline(implementation_cost, color="#D32F2F", ls="--", lw=2, alpha=0.8)
 
-ax1.set_yticks(list(y_pos))
-ax1.set_yticklabels(scenario_labels)
-ax1.set_xlabel('Projected Annual Revenue Uplift (USD)')
-ax1.set_title('Checkout Redesign — No Actionable Revenue Impact')
-ax1.legend(loc='lower right', fontsize=8)
+mid_y = len(scenario_labels) / 2 - 0.5
+plt.annotate(
+    f"Implementation cost\n${implementation_cost:,}\n(never recovered)",
+    xy=(implementation_cost, mid_y),
+    xytext=(max_rev * 0.95, mid_y),
+    fontsize=8.5, color="#D32F2F", 
+    va="center", ha="right", fontweight="bold",
+    arrowprops=dict(arrowstyle="->", color="#D32F2F", lw=1, alpha=0.8)
+)
 
-# Right panel: Weekly lift decay
-ax2 = axes[1]
+plt.yticks(list(y_pos), scenario_labels, fontsize=10)
+plt.xlabel("Projected Annual Revenue Uplift (USD)", fontsize=10)
+plt.title("Revenue Impact - No Actionable Uplift", fontsize=12, fontweight="bold")
+plt.legend(loc="lower right", fontsize=8.5, framealpha=0.9)
 
-weeks_sorted = sorted(weekly_lifts.keys())
-lifts_by_week = [weekly_lifts[w] * 100 for w in weeks_sorted]
-colors = ['#4CAF50' if l > 0.1 else '#FF9800' if l > 0 else '#F44336' for l in lifts_by_week]
+# Right Panel
+plt.subplot(1, 2, 2)
+weekly_weeks = sorted(weekly_lifts.keys())
+lifts_by_week = [weekly_lifts[w] * 100 for w in weekly_weeks]
+colors = ["#4CAF50" if l > 0.1 else "#FF9800" if l > 0 else "#F44336" for l in lifts_by_week]
+week_labels = [f"Week {int(w)}" for w in weekly_weeks]
 
-bars = ax2.bar([f'Week {w}' for w in weeks_sorted], lifts_by_week, color=colors, edgecolor='white', linewidth=0.5)
-ax2.axhline(0, color='black', lw=0.8, ls='-')
-ax2.set_ylabel('Treatment Lift (pp)')
-ax2.set_title('Novelty Decay — Lift Fades to Zero')
+bars = plt.bar(week_labels, lifts_by_week, color=colors,
+               edgecolor="white", linewidth=1.5, width=0.5)
+
+plt.axhline(0, color="black", lw=0.8)
 
 for bar, val in zip(bars, lifts_by_week):
-    ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-             f'{val:+.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+    offset = 0.015 if val >= 0 else -0.015
+    va_align = "bottom" if val >= 0 else "top"
+    
+    plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + offset,
+             f"{val:+.2f} pp", ha="center", va=va_align,
+             fontsize=11, fontweight="bold")
 
-ax2.annotate('Novelty spike\n(would have shipped\nif we peeked here)',
-             xy=(0, lifts_by_week[0]), xytext=(0.5, lifts_by_week[0] * 0.6),
-             fontsize=7, ha='center', color='#666',
-             arrowprops=dict(arrowstyle='->', color='#999', lw=0.8))
+plt.ylabel("Treatment Lift (pp)", fontsize=10)
+plt.title("Novelty Decay - Lift Fades to Zero", fontsize=12, fontweight="bold")
+plt.ylim(min(lifts_by_week) - 0.12, max(lifts_by_week) + 0.18)
 
-plt.tight_layout()
+plt.annotate("Novelty spike\n(would have shipped\nif test stopped here)",
+             xy=(0, lifts_by_week[0]),
+             xytext=(0.85, lifts_by_week[0] * 1),
+             fontsize=8.5, ha="center", color="#555", style="italic",
+             arrowprops=dict(arrowstyle="->", color="#888", lw=1.2))
+
+plt.tight_layout(w_pad=3)
 plt.savefig(os.path.join(ASSETS_DIR, 'revenue_impact.png'), dpi=150, bbox_inches='tight')
 plt.close()
 
 print(" Saved chart to assets/revenue_impact.png")
 print("\n" + "═" * 65)
-print(" Analysis complete. Recommendation: DO NOT SHIP.")
+print(" Analysis complete. Recommendation: Do not ship.")
