@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Data files (if they are large)
+data/*.csv
+
+# Environments
+.venv/
+venv/
+env/
