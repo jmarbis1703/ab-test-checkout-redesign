@@ -425,7 +425,7 @@ plt.ylim(min(lifts_by_week) - 0.12, max(lifts_by_week) + 0.35)
 
 plt.annotate("Novelty spike\n(would have shipped\nif test stopped here)",
              xy=(0, lifts_by_week[0]),
-             xytext=(10.85, lifts_by_week[0] * 0.1),
+             xytext=(0.85, lifts_by_week[0] * 1),
              fontsize=8.5, ha="center", color="#555", style="italic",
              arrowprops=dict(arrowstyle="->", color="#888", lw=1.2))
 
