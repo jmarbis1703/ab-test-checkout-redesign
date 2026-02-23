@@ -237,10 +237,14 @@ cd ab-test-checkout-redesign
 python -m venv venv
 
 # 3. Activate the environment
-# macOS/Linux:
+# macOS & Linux
+python3 -m venv venv
 source venv/bin/activate
-
-# On Windows (PowerShell):
+#Windows (Command Prompt)
+python -m venv venv
+venv\Scripts\activate.bat
+# Windows (Powershell)
+python -m venv venv
 .\venv\Scripts\Activate.ps1
 
 # 4. Install dependencies
