@@ -355,7 +355,7 @@ print("\n" + "═" * 65)
 print(" Generating charts...")
 
 # Final Visualization
-plt.figure(figsize=(15, 5.5))
+plt.figure(figsize=(17, 5.5))
 
 # Left
 plt.subplot(1, 2, 1)
@@ -387,12 +387,13 @@ mid_y = len(scenario_labels) / 2 - 0.5
 plt.annotate(
     f"Implementation cost\n${implementation_cost:,}\n(never recovered)",
     xy=(implementation_cost, mid_y),
-    xytext=(max_rev * 0.95, mid_y),
+    xytext=(max_rev * 1.25, mid_y),
     fontsize=8.5, color="#D32F2F", 
     va="center", ha="right", fontweight="bold",
     arrowprops=dict(arrowstyle="->", color="#D32F2F", lw=1, alpha=0.8)
 )
 
+plt.xlim(None, max_rev * 1.35)
 plt.yticks(list(y_pos), scenario_labels, fontsize=10)
 plt.xlabel("Projected Annual Revenue Uplift (USD)", fontsize=10)
 plt.title("Revenue Impact - No Actionable Uplift", fontsize=12, fontweight="bold")
@@ -420,11 +421,11 @@ for bar, val in zip(bars, lifts_by_week):
 
 plt.ylabel("Treatment Lift (pp)", fontsize=10)
 plt.title("Novelty Decay - Lift Fades to Zero", fontsize=12, fontweight="bold")
-plt.ylim(min(lifts_by_week) - 0.12, max(lifts_by_week) + 0.18)
+plt.ylim(min(lifts_by_week) - 0.12, max(lifts_by_week) + 0.35)
 
 plt.annotate("Novelty spike\n(would have shipped\nif test stopped here)",
              xy=(0, lifts_by_week[0]),
-             xytext=(0.85, lifts_by_week[0] * 1),
+             xytext=(1.2, lifts_by_week[0] * 0.7),
              fontsize=8.5, ha="center", color="#555", style="italic",
              arrowprops=dict(arrowstyle="->", color="#888", lw=1.2))
 
@@ -433,5 +434,5 @@ plt.savefig(os.path.join(ASSETS_DIR, 'revenue_impact.png'), dpi=150, bbox_inches
 plt.close()
 
 print(" Saved chart to assets/revenue_impact.png")
-print("\n" + "═" * 65)
+print("\n" + "=" * 65)
 print(" Analysis complete. Recommendation: Do not ship.")
