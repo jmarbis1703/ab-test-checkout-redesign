@@ -236,14 +236,14 @@ cd ab-test-checkout-redesign
 python -m venv venv
 
 # Activate the environment
-# On macOS/Linux:
+# macOS/Linux:
 source venv/bin/activate
-# On Windows (Command Prompt):
+# Windows / Powershell:
 venv\Scripts\activate.bat
 # On Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
 
-# Upgrade pip (crucial for Windows to avoid wheel build errors with SciPy/NumPy)
+# Upgrade pip (crucial for Windows)
 python -m pip install --upgrade pip
 
 # Install dependencies
