@@ -233,33 +233,25 @@ This outcome demonstrates the value of disciplined experimentation. By adhering 
 git clone <repo-url>
 cd ab-test-checkout-redesign
 
-# 2. Create a virtual environment (Recommended)
-python -m venv venv
-
-# 3. Activate the environment
-# macOS & Linux
+# 2. Create and activate a virtual environment
 python3 -m venv venv
-source venv/bin/activate
-#Windows (Command Prompt)
-python -m venv venv
-venv\Scripts\activate.bat
-# Windows (Powershell)
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+source venv/bin/activate        # macOS/Linux
+# venv\Scripts\activate.bat     # Windows (CMD)
+# .\venv\Scripts\Activate.ps1   # Windows (PowerShell)
 
-# 4. Install dependencies
+# 3. Install dependencies
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-# 5. Generate data
+# 4. Generate data
 python scripts/01_generate_data.py
 
-# 6. Run analysis (in order)
-#6.1 EDA
+# 5. Run analysis (in order)
+#5.1 EDA
 python scripts/02_eda.py
-#6.2 Statistical Analysis
+#5.2 Statistical Analysis
 python scripts/03_statistical_analysis.py
-#6.3 Business Recommendations
+#5.3 Business Recommendations
 python scripts/04_business_recommendations.py
 ```
 
