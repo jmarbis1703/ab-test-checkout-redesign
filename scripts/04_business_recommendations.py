@@ -234,15 +234,15 @@ for label, lift_pp in LIFT_SCENARIOS.items():
 
 if is_significant and not ci_crosses_zero:
     expected_rev = annual_sessions * observed_lift * average_order_value * (1 - ANNUAL_DECAY_RATE / 2)
-    print(f"\n Expected Annual Uplift: ${expected_rev:>12,.0f}")
+    print(f"\nExpected Annual Uplift: ${expected_rev:>12,.0f}")
 else:
-    print(f"\n Expected Annual Uplift: $0  (result not statistically significant)")
+    print(f"\nExpected Annual Uplift: $0  (result not statistically significant)")
 
 
 # Break-Even & Payback
 print("\n" + "═" * 65)
 print(" Break Even Analysis")
-print(f"  Implementation cost: ${IMPLEMENTATION_COST:,.0f}\n")
+print(f"Implementation cost: ${IMPLEMENTATION_COST:,.0f}\n")
 
 if not is_significant:
     print(f"The test did not reach statistical significance (p = {p_value:.4f}).")
@@ -302,7 +302,7 @@ for area, note in risks:
 
 # Recommendation ─
 print("\n" + "═" * 65)
-print(" Recommendation")
+print("Recommendation")
 
 print("""
     DECISION: Do NOT ship the new single-page checkout          
@@ -420,7 +420,6 @@ plt.tight_layout()
 plt.savefig(os.path.join(ASSETS_DIR, 'revenue_impact.png'), dpi=150, bbox_inches='tight')
 plt.close()
 
-print("  Saved chart to assets/revenue_impact.png")
+print(" Saved chart to assets/revenue_impact.png")
 print("\n" + "═" * 65)
 print(" Analysis complete. Recommendation: DO NOT SHIP.")
-print("═" * 65)
